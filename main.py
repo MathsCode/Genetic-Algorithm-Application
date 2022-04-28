@@ -2,7 +2,7 @@
 Description: main file
 Author: Xu Jiaming
 Date: 2022-04-27 17:47:59
-LastEditTime: 2022-04-28 15:22:40
+LastEditTime: 2022-04-28 16:53:17
 LastEditors:  
 FilePath: main.py
 '''
@@ -10,7 +10,9 @@ FilePath: main.py
 
 
 
+from mmap import mmap
 from multiprocessing import parent_process
+from cv2 import MOTION_HOMOGRAPHY
 import numpy
 import random
 class Node:
@@ -21,17 +23,22 @@ class Node:
 
 class Ti:
     def __init__(self,tree,A):
+        self.root = A[0].node
         self.tree = tree
         self.A = A
 
-
+class Gi:
+    def __init__(self,Gi,mmap):
+        self.gi = Gi
+        self.mmap = mmap
 
        
 # 算法1.1产生种群个体    
 def generate(F_node,B):
 
     # Gi种群个体，列表
-    Gi = []
+    Gdi = []
+    mmap ={}
     for i in F_node:
         fi_node = Node(i)
         A = [fi_node,]
@@ -45,8 +52,10 @@ def generate(F_node,B):
             A.append(node)
             Tree.append(A[rnd])
         ti = Ti(Tree,A)
-        Gi.append(ti)
-    return Gi
+        mmap[i] = len(Gi)
+        Gdi.append(ti)
+    gi = Gi(Gdi,mmap)
+    return gi
 
 
 # 算法1：初始化   
@@ -76,7 +85,8 @@ def init():
 def step2_3(F,p1,p2):
     number = random.sample(F,len(F)//2)
     for i in number:
-         
+        
+
 
 # 算法2：交叉
 def cross(G,F,pc = 0.8):
