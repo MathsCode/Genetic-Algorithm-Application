@@ -2,12 +2,12 @@
 Description: test
 Author: Xu Jiaming
 Date: 2022-04-28 08:04:38
-LastEditTime: 2022-04-29 21:53:55
+LastEditTime: 2022-04-30 00:31:03
 LastEditors:  
 FilePath: test.py
 '''
 import copy
-
+import random
 
 class Node:
     def __init__(self,number):
@@ -26,9 +26,6 @@ class Gi:
         self.gi = Gi
         self.mmap = mmap
 
-a = Node(10)
-b = Node(11)
-g1 = Gi(a,b)
-g2 = copy.deepcopy(g1)
-g2.gi.parent = 1
-print(g1.gi.parent)
+a = [1,2]
+b = random.sample(a,1)[0]
+print(b)

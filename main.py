@@ -2,7 +2,7 @@
 Description: main file
 Author: Xu Jiaming
 Date: 2022-04-27 17:47:59
-LastEditTime: 2022-04-29 22:21:37
+LastEditTime: 2022-04-30 00:38:34
 LastEditors:  
 FilePath: main.py
 '''
@@ -12,6 +12,8 @@ FilePath: main.py
 import copy
 import numpy
 import random
+
+from torch import le
 class Node:
     def __init__(self,number):
         self.node = number
@@ -19,10 +21,11 @@ class Node:
         self.next = []
 
 class Ti:
-    def __init__(self,tree,A):
+    def __init__(self,tree,A,non_leaf_parent):
         self.root = A[0].node
         self.tree = tree
         self.A = A
+        self.nlp = non_leaf_parent
 
 class Gi:
     def __init__(self,Gi,mmap):
@@ -41,15 +44,20 @@ def generate(F_node,B):
         A = [fi_node,]
         # Tree个体列表元素
         Tree = []
+        non_leaf_parent = []
         for j in B:
             rnd = random.randint(0,len(A)-1)
             node = Node(j)
             node.parent = rnd
             A[rnd].next = len(A)
             A.append(node)
-            new_node = copy.deepcopy(A[rnd])
-            Tree.append(A[rnd])
-        ti = Ti(Tree,A)
+            new_Anode = copy.deepcopy(A[rnd])
+            Tree.append(new_Anode)
+            if(A[rnd].parent != A[rnd].node):
+                new_non_node = copy.deepcopy(A[A[rnd].parent])
+                non_leaf_parent.append(new_non_node)
+
+        ti = Ti(Tree,A,non_leaf_parent)
         mmap[i] = len(Gi)
         Gdi.append(ti)
     gi = Gi(Gdi,mmap)
@@ -104,7 +112,7 @@ def step2_4(F,B,old_p1,old_p2):
     for i in f:
         p1_fi = p1.gi[p1.mmp[i]]
         p2_fi = p2.gi[p2.mmp[i]]
-        b = random.sample(B)
+        b = random.sample(B,1)[0]
         loc1 = 0
         while(loc1 < len(p1_fi.A)):
             if(p1_fi.A[loc1].node == b):
@@ -144,13 +152,26 @@ def cross(G,F,B,pc = 0.8):
 # 算法3：变异
 def mute(G,F,B,pm = 0.15):
     rnd1 = random.randint(0,len(G)-1)
-    parent = G[rnd1] 
-
+    new_p = copy.deepcopy(G[rnd1])
     p2 = random.randint(0,1000)/1000
     if(p2 < pm):
         t = random.randint(1,len(F))
         f = random.sample(F,t)
-        for 
-    else:
-
         
+        mid = set([])
+        whole = set([])
+        for i in f:
+            p_fi = new_p.gi[new_p.mmap[i]]
+            for j in p_fi.tree:
+                mid.add(j.node)
+            for j in p_fi.A:
+                whole.add(j.node)
+        leaf = whole-mid
+        if(len(leaf) != 0):
+            L = random.sample(leaf,1)[0]
+            for i in f:
+                p_fi = new_p.gi[new_p.mmap[i]]
+        
+                
+
+    else:
