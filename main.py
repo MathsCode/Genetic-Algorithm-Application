@@ -2,17 +2,14 @@
 Description: main file
 Author: Xu Jiaming
 Date: 2022-04-27 17:47:59
-LastEditTime: 2022-04-28 16:53:17
+LastEditTime: 2022-04-29 22:21:37
 LastEditors:  
 FilePath: main.py
 '''
 
 
 
-
-from mmap import mmap
-from multiprocessing import parent_process
-from cv2 import MOTION_HOMOGRAPHY
+import copy
 import numpy
 import random
 class Node:
@@ -50,6 +47,7 @@ def generate(F_node,B):
             node.parent = rnd
             A[rnd].next = len(A)
             A.append(node)
+            new_node = copy.deepcopy(A[rnd])
             Tree.append(A[rnd])
         ti = Ti(Tree,A)
         mmap[i] = len(Gi)
@@ -67,7 +65,7 @@ def init():
     # N总节点列表
     # B = N-F
     g = eval(input("Population size:"))  
-    n = eval(input("Total nodes:"))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "))  
+    n = eval(input("Total nodes:"))
     m = eval(input("Total failure nodes number:"))
     F = []
     print("Input the failure nodes")
@@ -81,15 +79,49 @@ def init():
     G = []
     for j in range(g):
         G.append(generate(F,B))
-# 算法2.1：step3
-def step2_3(F,p1,p2):
-    number = random.sample(F,len(F)//2)
-    for i in number:
         
 
+# 算法2.1：step3
+def step2_3(F,old_p1,old_p2):
+    # 交叉子代 crossoffspring
+    crossoffspring = []
+    number = random.sample(F,len(F)//2)
+    p1 = copy.deepcopy(old_p1)
+    p2 = copy.deepcopy(old_p2)
+    for i in number:
+        p1.gi[p1.mmap[i]],p2.gi[p2.mmap[i]] = p2.gi[p2.mmap[i]],p1.gi[p1.mmap[i]]
+    crossoffspring.append(p1)
+    crossoffspring.append(p2)
+    return crossoffspring
+
+
+# 算法2.2：step4
+def step2_4(F,B,old_p1,old_p2):
+    t = random.randint(1,len(F))
+    f = random.randint(F,t)
+    p1 = copy.deepcopy(old_p1)
+    p2 = copy.deepcopy(old_p2)
+    for i in f:
+        p1_fi = p1.gi[p1.mmp[i]]
+        p2_fi = p2.gi[p2.mmp[i]]
+        b = random.sample(B)
+        loc1 = 0
+        while(loc1 < len(p1_fi.A)):
+            if(p1_fi.A[loc1].node == b):
+                break
+            loc1 += 1
+        loc2 = 0
+        while(loc2 < len(p2_fi.A)):
+            if(p2_fi.A[loc2].node == b):
+                break
+            loc2 += 1
+        p1_fi.A[p1_fi.A[loc1].parent],p2_fi.A[p2_fi.A[loc2].parent] = p2_fi.A[p2_fi.A[loc2].parent],p1_fi.A[p1_fi.A[loc1].parent]
+    
+    crossoffspring = [p1,p2]
+    return crossoffspring
 
 # 算法2：交叉
-def cross(G,F,pc = 0.8):
+def cross(G,F,B,pc = 0.8):
     rnd1 = 1
     rnd2 = 2
     while(rnd1==rnd2):
@@ -103,12 +135,22 @@ def cross(G,F,pc = 0.8):
     p = random.randint(0,1000)/1000
     if(p < pc/2):
         # 执行2.1步骤3
+        step2_3(F,parent1,parent2)
     elif(p < pc):
         # 执行2.2步骤4
+        step2_4(F,B,parent1,parent2)
 
 
+# 算法3：变异
+def mute(G,F,B,pm = 0.15):
+    rnd1 = random.randint(0,len(G)-1)
+    parent = G[rnd1] 
 
+    p2 = random.randint(0,1000)/1000
+    if(p2 < pm):
+        t = random.randint(1,len(F))
+        f = random.sample(F,t)
+        for 
+    else:
 
-        
-    
         
