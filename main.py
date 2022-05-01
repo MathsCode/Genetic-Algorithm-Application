@@ -2,7 +2,7 @@
 Description: main file
 Author: Xu Jiaming
 Date: 2022-04-27 17:47:59
-LastEditTime: 2022-04-30 00:38:34
+LastEditTime: 2022-05-01 11:20:33
 LastEditors:  
 FilePath: main.py
 '''
@@ -13,7 +13,6 @@ import copy
 import numpy
 import random
 
-from torch import le
 class Node:
     def __init__(self,number):
         self.node = number
@@ -171,7 +170,22 @@ def mute(G,F,B,pm = 0.15):
             L = random.sample(leaf,1)[0]
             for i in f:
                 p_fi = new_p.gi[new_p.mmap[i]]
-        
-                
-
+                L_loc = 0
+                while(L_loc < len(p_fi.A)):
+                    if(p_fi.A[L_loc].node == L):
+                        break
+                    L_loc+=1    
+                        
+                if(len(p_fi.nlp)==0):
+                    continue
+                else:
+                    NLP_loc = random.randint(0,len(p_fi.nlp)-1)
+                    p_fi.nlp[NLP_loc].next= L_loc
+                    p_fi.A[L_loc].parent = NLP_loc
+        return new_p
     else:
+        return new_p
+
+# Ëã·¨4
+def search():
+    

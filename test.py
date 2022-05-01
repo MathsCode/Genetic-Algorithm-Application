@@ -2,7 +2,7 @@
 Description: test
 Author: Xu Jiaming
 Date: 2022-04-28 08:04:38
-LastEditTime: 2022-04-30 00:31:03
+LastEditTime: 2022-05-01 11:11:56
 LastEditors:  
 FilePath: test.py
 '''
@@ -26,6 +26,10 @@ class Gi:
         self.gi = Gi
         self.mmap = mmap
 
-a = [1,2]
-b = random.sample(a,1)[0]
+a = Node(10)
+b = Node(20)
+t1 = Gi(a,a)
+t2 = Gi(b,b)
+c = [t1,t2]
+b = random.sample(c,1)[0].gi.node
 print(b)
