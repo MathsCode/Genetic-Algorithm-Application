@@ -2,7 +2,7 @@
 Description: main file
 Author: Xu Jiaming
 Date: 2022-04-27 17:47:59
-LastEditTime: 2022-05-01 11:20:33
+LastEditTime: 2022-05-01 22:15:11
 LastEditors:  
 FilePath: main.py
 '''
@@ -10,7 +10,8 @@ FilePath: main.py
 
 
 import copy
-import numpy
+import functools
+import numpy as np
 import random
 
 class Node:
@@ -185,7 +186,187 @@ def mute(G,F,B,pm = 0.15):
         return new_p
     else:
         return new_p
+# 算法4.1 dfs
+def dfs(current,data,A):
+    if(len(current.next) != 0):
+        for i in current.next:
+            dfs(A[i],data,A)
+            data[current.node] += data[A[i].node]
+    else:
+        data[current.node] = 1
+
+
+
+
+
+
+
+
+
+
+
 
 # 算法4
-def search():
+def search(totaln,old_indi,bandwidth,reuse):
+    # indi 为当前个体
+    # bandwidth 为带宽矩阵
+    # reuse 表示复用矩阵
+    # n为总数
+    indi = copy.deepcopy(old_indi)
+    for ti in indi:
+        for j in ti.A:
+            for next in j.next:
+                reuse[j.node][ti.A[next].node] += 1
+                reuse[ti.A[next].node][j.node] += 1
+    max_delay = 0
+    is_reuse2delay = False
+    node_parent = 0
+    node_next = 0
+    max_ti = 0
+    for ti in indi:
+        data_size = np.zeros(ti.A[len(ti.A)-1].node + 1)
+        delay = np.zeros((ti.A[len(ti.A)-1].node + 1,ti.A[len(ti.A)-1].node + 1))
+        dfs(ti.A[0],data_size,ti.A)
+        for j in ti.A:
+            for next in j.next:
+                delay[j.node][ti.A[next].node] = data_size[ti.A[next].node] / (bandwidth[j.node][ti.A[next].node]/reuse[j.node][ti.A[next].node])
+                if(delay[j.node][ti.A[next].node] > max_delay):
+                    max_delay = delay[j.node][ti.A[next].node]
+                    max_ti = ti
+                    node_parent = j
+                    node_next = ti.A[next]
+                    if(reuse[j.node][ti.A[next].node] > 1):
+                        is_reuse2delay = True
+                    elif(reuse[j.node][ti.A[next].node] == 1):
+                        is_reuse2delay = False
     
+
+    if(is_reuse2delay == True):
+        node_loc = random.randint(0,len(max_ti.A)-1)
+        
+        pd = True
+        k = 0
+        while(pd):
+            if(max_ti.A[node_loc].node != node_parent.node and max_ti.A[node_loc].node != node_next.node):
+                if((bandwidth[node_parent.node][node_next.node]/ reuse[node_parent.node][node_next.node]) < (bandwidth[max_ti.A[node_loc].node][node_next.node]/(reuse[max_ti.A[node_loc].node][node_next.node]+1))):
+                    node_parent.next.remove(node_next.node)
+                    max_ti.A[node_loc].next.append(max_ti.A.index(node_next.node))
+                    node_next.parent = node_loc
+                    pd = False
+                else:
+                    k += 1
+                    if(k >= totaln /10):
+                        pd = False
+            else:
+                node_loc = random.randint(0,len(max_ti.A)-1)
+                k += 1
+                if(k >= totaln/10):
+                    pd = False
+    else:
+        node_loc = random.randint(0,len(max_ti.A)-1)
+        
+        pd = True
+        k = 0
+        while(pd):
+            if(max_ti.A[node_loc].node != node_parent.node and max_ti.A[node_loc].node != node_next.node):
+                if((bandwidth[node_parent.node][node_next.node]/ reuse[node_parent.node][node_next.node]) < (bandwidth[max_ti.A[node_loc].node][node_next.node]/(reuse[max_ti.A[node_loc].node][node_next.node]+1))):
+                    node_parent.next.remove(node_next.node)
+                    max_ti.A[node_loc].next.append(max_ti.A.index(node_next.node))
+                    node_next.parent = node_loc
+                    pd = False
+                else:
+                    k += 1
+                    if(k >= totaln /10):
+                        pd = False
+            else:
+                node_loc = random.randint(0,len(max_ti.A)-1)
+                k += 1
+                if(k >= totaln/10):
+                    pd = False
+
+    return indi
+
+
+# 算法4.2 计算个体适应度
+def cal_delay(old_indi,bandwidth):
+    indi = copy.deepcopy(old_indi)
+    reuse = np.zeros(bandwidth.shape)
+    for ti in indi:
+        for j in ti.A:
+            for next in j.next:
+                reuse[j.node][ti.A[next].node] += 1
+                reuse[ti.A[next].node][j.node] += 1
+    max_delay = 0
+    is_reuse2delay = False
+    node_parent = 0
+    node_next = 0
+    max_ti = 0
+    for ti in indi:
+        data_size = np.zeros(ti.A[len(ti.A)-1].node + 1)
+        delay = np.zeros((ti.A[len(ti.A)-1].node + 1,ti.A[len(ti.A)-1].node + 1))
+        dfs(ti.A[0],data_size,ti.A)
+        for j in ti.A:
+            for next in j.next:
+                delay[j.node][ti.A[next].node] = data_size[ti.A[next].node] / (bandwidth[j.node][ti.A[next].node]/reuse[j.node][ti.A[next].node])
+                if(delay[j.node][ti.A[next].node] > max_delay):
+                    max_delay = delay[j.node][ti.A[next].node]
+                    max_ti = ti
+                    node_parent = j
+                    node_next = ti.A[next]
+                    if(reuse[j.node][ti.A[next].node] > 1):
+                        is_reuse2delay = True
+                    elif(reuse[j.node][ti.A[next].node] == 1):
+                        is_reuse2delay = False
+    return max_delay
+def comp(x,y):
+
+# 算法5选择
+def choose(ini_pop,cross,mutation,localsearch,pop_size,bandwidth):
+    max_delay = []
+    k = 0
+    for i in ini_pop:
+        t = {}
+        t['delay'] = cal_delay(i,bandwidth)
+        t['num'] = k
+        t['class'] = 1
+        max_delay.append(t)
+    k = 0
+    for i in cross:
+        t = {}
+        t['delay'] = cal_delay(i,bandwidth)
+        t['num'] = k
+        t['class'] = 2
+        max_delay.append(t)
+    k = 0
+    for i in mutation:
+        t = {}
+        t['delay'] = cal_delay(i,bandwidth)
+        t['num'] = k
+        t['class'] = 3
+        max_delay.append(t)
+    k = 0
+    for i in localsearch:
+        t = {}
+        t['delay'] = cal_delay(i,bandwidth)
+        t['num'] = k
+        t['class'] = 4
+        max_delay.append(t)
+    max_delay.sort(key=lambda item: item['delay'])
+    pop_new = []
+    for i in range(pop_size/10):
+        if(max_delay[i]['class'] == 1):
+            pop_new.append(copy.deepcopy(ini_pop[i]))
+        if(max_delay[i]['class'] == 2):
+            pop_new.append(copy.deepcopy(cross[i]))
+        if(max_delay[i]['class'] == 3):
+            pop_new.append(copy.deepcopy(mutation[i]))
+        if(max_delay[i]['class'] == 4):
+            pop_new.append(copy.deepcopy(localsearch[i]))
+    return pop_new
+        
+        
+        
+        
+            
+
+
