@@ -2,7 +2,7 @@
 Description: test
 Author: Xu Jiaming
 Date: 2022-04-28 08:04:38
-LastEditTime: 2022-05-01 22:03:11
+LastEditTime: 2022-05-02 15:10:38
 LastEditors:  
 FilePath: test.py
 '''
@@ -33,7 +33,6 @@ def comp(x, y):
     return x[0] > y[0]
  
  
-
-a = [ {'a':1,'b':2},{'a':10,'b':10},{'a':2,'b':10}]
-a.sort(key=lambda item:item['a'])
-print(a)
+a = [Node(i) for i in range(10)]
+b = a[2]
+print(a.index(b))  

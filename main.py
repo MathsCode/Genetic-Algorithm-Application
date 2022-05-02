@@ -2,7 +2,7 @@
 Description: main file
 Author: Xu Jiaming
 Date: 2022-04-27 17:47:59
-LastEditTime: 2022-05-01 22:15:11
+LastEditTime: 2022-05-02 18:07:32
 LastEditors:  
 FilePath: main.py
 '''
@@ -33,23 +33,23 @@ class Gi:
         self.mmap = mmap
 
        
-# �㷨1.1������Ⱥ����    
+# 算法1.1产生种群个体    
 def generate(F_node,B):
 
-    # Gi��Ⱥ���壬�б�
+    # Gi种群个体，列表
     Gdi = []
     mmap ={}
     for i in F_node:
         fi_node = Node(i)
         A = [fi_node,]
-        # Tree�����б�Ԫ��
+        # Tree个体列表元素
         Tree = []
         non_leaf_parent = []
         for j in B:
             rnd = random.randint(0,len(A)-1)
             node = Node(j)
             node.parent = rnd
-            A[rnd].next = len(A)
+            A[rnd].next.append(len(A))
             A.append(node)
             new_Anode = copy.deepcopy(A[rnd])
             Tree.append(new_Anode)
@@ -58,19 +58,19 @@ def generate(F_node,B):
                 non_leaf_parent.append(new_non_node)
 
         ti = Ti(Tree,A,non_leaf_parent)
-        mmap[i] = len(Gi)
+        mmap[i] = len(Gdi)
         Gdi.append(ti)
     gi = Gi(Gdi,mmap)
     return gi
 
 
-# �㷨1����ʼ��   
+# 算法1：初始化   
 def init():
-    # ��Ⱥ��Сg
-    # FʧЧ�ڵ��б�
-    # m�����ж��ٸ�ʧЧ�ڵ�
-    # n�����ܹ����ٸ��ڵ�1-n
-    # N�ܽڵ��б�
+    # 种群大小g
+    # F失效节点列表
+    # m代表有多少个失效节点
+    # n代表总共多少个节点1-n
+    # N总节点列表
     # B = N-F
     g = eval(input("Population size:"))  
     n = eval(input("Total nodes:"))
@@ -82,16 +82,17 @@ def init():
         m -= 1
     
     N = [i for i in range(1,n+1)]
-    B = list(set(F)-set(N))
-    # G ��Ⱥ
+    B = list(set(N)-set(F))
+    # G 种群
     G = []
     for j in range(g):
         G.append(generate(F,B))
+    return g,n,m,G,F,B
         
 
-# �㷨2.1��step3
+# 算法2.1：step3
 def step2_3(F,old_p1,old_p2):
-    # �����Ӵ� crossoffspring
+    # 交叉子代 crossoffspring
     crossoffspring = []
     number = random.sample(F,len(F)//2)
     p1 = copy.deepcopy(old_p1)
@@ -103,15 +104,16 @@ def step2_3(F,old_p1,old_p2):
     return crossoffspring
 
 
-# �㷨2.2��step4
+# 算法2.2：step4
 def step2_4(F,B,old_p1,old_p2):
     t = random.randint(1,len(F))
-    f = random.randint(F,t)
+    f = random.sample(F,t)
     p1 = copy.deepcopy(old_p1)
     p2 = copy.deepcopy(old_p2)
     for i in f:
-        p1_fi = p1.gi[p1.mmp[i]]
-        p2_fi = p2.gi[p2.mmp[i]]
+        p1_fi = p1.gi[p1.mmap[i]]
+        p2_fi = p2.gi[p2.mmap[i]]
+        # print(B)
         b = random.sample(B,1)[0]
         loc1 = 0
         while(loc1 < len(p1_fi.A)):
@@ -128,7 +130,7 @@ def step2_4(F,B,old_p1,old_p2):
     crossoffspring = [p1,p2]
     return crossoffspring
 
-# �㷨2������
+# 算法2：交叉
 def cross(G,F,B,pc = 0.8):
     rnd1 = 1
     rnd2 = 2
@@ -142,14 +144,16 @@ def cross(G,F,B,pc = 0.8):
 
     p = random.randint(0,1000)/1000
     if(p < pc/2):
-        # ִ��2.1����3
-        step2_3(F,parent1,parent2)
+        # 执行2.1步骤3
+        return step2_3(F,parent1,parent2)
     elif(p < pc):
-        # ִ��2.2����4
-        step2_4(F,B,parent1,parent2)
+        # 执行2.2步骤4
+        return step2_4(F,B,parent1,parent2)
+    else:
+        return [parent1,parent2]
 
 
-# �㷨3������
+# 算法3：变异
 def mute(G,F,B,pm = 0.15):
     rnd1 = random.randint(0,len(G)-1)
     new_p = copy.deepcopy(G[rnd1])
@@ -186,34 +190,33 @@ def mute(G,F,B,pm = 0.15):
         return new_p
     else:
         return new_p
-# �㷨4.1 dfs
+# 算法4.1 dfs
 def dfs(current,data,A):
+    # print(A[0].node)
+    # print(current.node)
+    # print(current.next)
     if(len(current.next) != 0):
+        data[current.node] = 1
         for i in current.next:
+            # print(i)
             dfs(A[i],data,A)
             data[current.node] += data[A[i].node]
     else:
         data[current.node] = 1
+    return 
 
 
 
 
 
-
-
-
-
-
-
-
-# �㷨4
+# 算法4
 def search(totaln,old_indi,bandwidth,reuse):
-    # indi Ϊ��ǰ����
-    # bandwidth Ϊ��������
-    # reuse ��ʾ���þ���
-    # nΪ����
+    # indi 为当前个体
+    # bandwidth 为带宽矩阵
+    # reuse 表示复用矩阵
+    # n为总数
     indi = copy.deepcopy(old_indi)
-    for ti in indi:
+    for ti in indi.gi:
         for j in ti.A:
             for next in j.next:
                 reuse[j.node][ti.A[next].node] += 1
@@ -222,14 +225,17 @@ def search(totaln,old_indi,bandwidth,reuse):
     is_reuse2delay = False
     node_parent = 0
     node_next = 0
+
     max_ti = 0
-    for ti in indi:
+    for ti in indi.gi:
+        # print(len(ti.A))
         data_size = np.zeros(ti.A[len(ti.A)-1].node + 1)
         delay = np.zeros((ti.A[len(ti.A)-1].node + 1,ti.A[len(ti.A)-1].node + 1))
         dfs(ti.A[0],data_size,ti.A)
         for j in ti.A:
             for next in j.next:
                 delay[j.node][ti.A[next].node] = data_size[ti.A[next].node] / (bandwidth[j.node][ti.A[next].node]/reuse[j.node][ti.A[next].node])
+                # print(delay[j.node][ti.A[next].node] )
                 if(delay[j.node][ti.A[next].node] > max_delay):
                     max_delay = delay[j.node][ti.A[next].node]
                     max_ti = ti
@@ -242,15 +248,15 @@ def search(totaln,old_indi,bandwidth,reuse):
     
 
     if(is_reuse2delay == True):
-        node_loc = random.randint(0,len(max_ti.A)-1)
+        node_loc = random.randint(0,max_ti.A.index(node_next)-1)
         
         pd = True
         k = 0
         while(pd):
-            if(max_ti.A[node_loc].node != node_parent.node and max_ti.A[node_loc].node != node_next.node):
+            if(max_ti.A[node_loc].node != node_parent.node and max_ti.A[node_loc].node != node_next.node ):
                 if((bandwidth[node_parent.node][node_next.node]/ reuse[node_parent.node][node_next.node]) < (bandwidth[max_ti.A[node_loc].node][node_next.node]/(reuse[max_ti.A[node_loc].node][node_next.node]+1))):
-                    node_parent.next.remove(node_next.node)
-                    max_ti.A[node_loc].next.append(max_ti.A.index(node_next.node))
+                    node_parent.next.remove(max_ti.A.index(node_next))
+                    max_ti.A[node_loc].next.append(max_ti.A.index(node_next))
                     node_next.parent = node_loc
                     pd = False
                 else:
@@ -258,20 +264,24 @@ def search(totaln,old_indi,bandwidth,reuse):
                     if(k >= totaln /10):
                         pd = False
             else:
-                node_loc = random.randint(0,len(max_ti.A)-1)
+                node_loc = random.randint(0,max_ti.A.index(node_next)-1)
                 k += 1
                 if(k >= totaln/10):
                     pd = False
     else:
-        node_loc = random.randint(0,len(max_ti.A)-1)
+        #while(max_ti)
+        node_loc = random.randint(0,max_ti.A.index(node_next)-1)
         
         pd = True
         k = 0
         while(pd):
             if(max_ti.A[node_loc].node != node_parent.node and max_ti.A[node_loc].node != node_next.node):
                 if((bandwidth[node_parent.node][node_next.node]/ reuse[node_parent.node][node_next.node]) < (bandwidth[max_ti.A[node_loc].node][node_next.node]/(reuse[max_ti.A[node_loc].node][node_next.node]+1))):
-                    node_parent.next.remove(node_next.node)
-                    max_ti.A[node_loc].next.append(max_ti.A.index(node_next.node))
+                    # print(node_parent.next)
+                    # print(node_next.node)
+                    # print()
+                    node_parent.next.remove(max_ti.A.index(node_next))
+                    max_ti.A[node_loc].next.append(max_ti.A.index(node_next))
                     node_next.parent = node_loc
                     pd = False
                 else:
@@ -279,7 +289,7 @@ def search(totaln,old_indi,bandwidth,reuse):
                     if(k >= totaln /10):
                         pd = False
             else:
-                node_loc = random.randint(0,len(max_ti.A)-1)
+                node_loc = random.randint(0,max_ti.A.index(node_next)-1)
                 k += 1
                 if(k >= totaln/10):
                     pd = False
@@ -287,11 +297,11 @@ def search(totaln,old_indi,bandwidth,reuse):
     return indi
 
 
-# �㷨4.2 ���������Ӧ��
+# 算法4.2 计算个体适应度
 def cal_delay(old_indi,bandwidth):
     indi = copy.deepcopy(old_indi)
     reuse = np.zeros(bandwidth.shape)
-    for ti in indi:
+    for ti in indi.gi:
         for j in ti.A:
             for next in j.next:
                 reuse[j.node][ti.A[next].node] += 1
@@ -301,7 +311,7 @@ def cal_delay(old_indi,bandwidth):
     node_parent = 0
     node_next = 0
     max_ti = 0
-    for ti in indi:
+    for ti in indi.gi:
         data_size = np.zeros(ti.A[len(ti.A)-1].node + 1)
         delay = np.zeros((ti.A[len(ti.A)-1].node + 1,ti.A[len(ti.A)-1].node + 1))
         dfs(ti.A[0],data_size,ti.A)
@@ -318,9 +328,7 @@ def cal_delay(old_indi,bandwidth):
                     elif(reuse[j.node][ti.A[next].node] == 1):
                         is_reuse2delay = False
     return max_delay
-def comp(x,y):
-
-# �㷨5ѡ��
+# 算法5选择
 def choose(ini_pop,cross,mutation,localsearch,pop_size,bandwidth):
     max_delay = []
     k = 0
@@ -353,20 +361,150 @@ def choose(ini_pop,cross,mutation,localsearch,pop_size,bandwidth):
         max_delay.append(t)
     max_delay.sort(key=lambda item: item['delay'])
     pop_new = []
-    for i in range(pop_size/10):
+    for i in range(pop_size):
         if(max_delay[i]['class'] == 1):
-            pop_new.append(copy.deepcopy(ini_pop[i]))
+            pop_new.append(copy.deepcopy(ini_pop[max_delay[i]['num']]))
         if(max_delay[i]['class'] == 2):
-            pop_new.append(copy.deepcopy(cross[i]))
+            pop_new.append(copy.deepcopy(cross[max_delay[i]['num']]))
         if(max_delay[i]['class'] == 3):
-            pop_new.append(copy.deepcopy(mutation[i]))
+            pop_new.append(copy.deepcopy(mutation[max_delay[i]['num']]))
         if(max_delay[i]['class'] == 4):
-            pop_new.append(copy.deepcopy(localsearch[i]))
-    return pop_new
+            pop_new.append(copy.deepcopy(localsearch[max_delay[i]['num']]))
+    
+    return pop_new,max_delay
         
+def main():
+    pc = eval(input("交叉概率:"))
+    pm = eval(input("变异概率:"))
+    t = 0
+    # P表示当前种群
+    # 初始化操作
+    g,n,m,G,F,B = init()
+    print(g) 
+    print(n) 
+    print(m) 
+    print(B) 
+    print(F)  
+    np.set_printoptions(suppress=True)
+    bandwidth = np.zeros((n+1,n+1))
+    for i in range(n+1):
+        bandwidth[i][i] = 0
+        for j in range(i+1,n+1):
+            rnd = random.randint(0,1000)/10
+            if(rnd < 2.7):
+                bandwidth[i][j] = random.randint(0,30)
+                bandwidth[j][i] = bandwidth[i][j]
+            elif(rnd < 14):
+                bandwidth[i][j] = random.randint(30,200)
+                bandwidth[j][i] = bandwidth[i][j]
+            elif(rnd < 40.2):
+                bandwidth[i][j] = random.randint(200,500)
+                bandwidth[j][i] = bandwidth[i][j]
+            elif(rnd < 96.3):
+                bandwidth[i][j] = random.randint(500,1000)
+                bandwidth[j][i] = bandwidth[i][j]
+            else:
+                bandwidth[i][j] = random.randint(1000,10000)
+                bandwidth[j][i] = bandwidth[i][j]
+    print(bandwidth)
+    reuse = np.zeros((n+1,n+1))
+    P = copy.deepcopy(G)
+    k = 1
+    tot = 1
+    last_delay = {'delay':0,'class':0,'num':0}
+    while(k <= 50  and tot <= 100):
+        print("TOT:",tot,"Num:",k)
+        # 交叉操作
+        crossoffspring = cross(P,F,B,pc)
+
+        # 变异操作
+        mutationoffspring = []
+        mutationoffspring.append(mute(P,F,B,pm))
         
+        # 局部搜索
+        sum = P+crossoffspring+mutationoffspring 
+        t = random.randint(0,len(sum)-1)
+        pop_search = random.sample(sum,t)
+        localsearchoffspring = []
+        for i in pop_search:
+            localsearchoffspring.append(copy.deepcopy(search(n,i,bandwidth,reuse)))
+        pop_new,max_delay = choose(P,crossoffspring,mutationoffspring,localsearchoffspring,g,bandwidth)
+        P = copy.deepcopy(pop_new)
+        if(last_delay['delay'] == max_delay[0]['delay'] and last_delay['num'] == max_delay[0]['num'] and last_delay['class'] == max_delay[0]['class']):
+            k+=1
+        else:
+            last_delay['delay'] = max_delay[0]['delay'] 
+            last_delay['num'] = max_delay[0]['num'] 
+            last_delay['class'] = max_delay[0]['class']
+            k = 0
+        tot+= 1
+        print(max_delay[0]['delay'])
+        # print(max_delay[0]['num'])
+        # print(max_delay[0]['class'])
+        if(max_delay[0]['class'] == 1):
+            tree = 0
+            for i in P[max_delay[0]['num']].gi:
+                print("################################")
+                tree += 1
+                print("修复树:",tree)
+                for j in i.A:
+                    print("------------------")
+                    print("当前节点值：",j.node)
+                    print("当前节点的父节点值：",i.A[j.parent].node)
+                    lst = []
+                    for t in j.next:
+                        lst.append(i.A[t].node)
+                    print("当前节点的子节点列表：",lst)
+                    print("------------------")
+        if(max_delay[0]['class'] == 2):
+            tree = 0
+            for i in crossoffspring[max_delay[0]['num']].gi:
+                print("################################")
+                tree += 1
+                print("修复树:",tree)
+                for j in i.A:
+                    print("------------------")
+                    print("当前节点值：",j.node)
+                    print("当前节点的父节点值：",i.A[j.parent].node)
+                    lst = []
+                    for t in j.next:
+                        lst.append(i.A[t].node)
+                    print("当前节点的子节点列表：",lst)
+                    print("------------------")
+        if(max_delay[0]['class'] == 3):
+            tree = 0
+            for i in mutationoffspring[max_delay[0]['num']].gi:
+                print("################################")
+                tree += 1
+                print("修复树:",tree)
+                for j in i.A:
+                    print("------------------")
+                    print("当前节点值：",j.node)
+                    print("当前节点的父节点值：",i.A[j.parent].node)
+                    lst = []
+                    for t in j.next:
+                        lst.append(i.A[t].node)
+                    print("当前节点的子节点列表：",lst)
+                    print("------------------")
+        if(max_delay[0]['class'] == 4):
+            tree = 0
+            for i in localsearchoffspring[max_delay[0]['num']].gi:
+                print("################################")
+                tree += 1
+                print("修复树:",tree)
+                for j in i.A:
+                    print("------------------")
+                    print("当前节点值：",j.node)
+                    print("当前节点的父节点值：",i.A[j.parent].node)
+                    lst = []
+                    for t in j.next:
+                        lst.append(i.A[t].node)
+                    print("当前节点的子节点列表：",lst)
+                    print("------------------")
         
-        
-            
+    
+
+main()
+
 
 
